@@ -1,0 +1,72 @@
+# ContextKeeper Agent Configuration
+
+# Server settings
+server_url: "https://contextkeeper.dev"
+local_port: 8080
+enable_tls: true
+
+# Authentication (leave empty for anonymous usage)
+api_key: ""
+
+# Session settings
+session_id: ""  # Auto-generated on first run
+max_sessions: 100
+upload_batch: 5
+
+# Logging
+log_level: "info"  # debug, info, warn, error
+
+# Monitoring settings
+monitor:
+  # Check intervals (in seconds)
+  shell_history_interval: 10
+  process_check_interval: 15
+  claude_code_interval: 5
+  
+  # Patterns to detect AI tools
+  ai_tools:
+    - "claude"
+    - "aider"
+    - "cursor"
+    - "copilot"
+    - "chatgpt"
+    - "gemini"
+  
+  # File patterns to watch
+  watch_patterns:
+    - "*.py"
+    - "*.go"
+    - "*.js"
+    - "*.ts"
+    - "*.jsx"
+    - "*.tsx"
+    - "*.md"
+    
+# Buffer settings
+buffer:
+  # Maximum number of sessions to keep in local buffer
+  max_size: 100
+  
+  # Flush interval (in seconds)
+  flush_interval: 30
+  
+  # Retry settings
+  max_retries: 3
+  retry_delay: 5  # seconds
+
+# Integration settings
+integrations:
+  vscode:
+    enabled: true
+    port: 8081
+  
+  claude_code:
+    enabled: true
+    watch_temp_files: true
+  
+  terminal:
+    enabled: true
+    history_files:
+      - "~/.bash_history"
+      - "~/.zsh_history"
+      - "~/.fish_history"
