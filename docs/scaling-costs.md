@@ -47,20 +47,20 @@
 ## Revenue Scenarios
 
 ### Conservative (5% conversion)
-- Paid users: 50,000 × $29 = $1,450,000/month
+- Paid users: 50,000 × $19 = $950,000/month
 - Infrastructure: $8,750/month
-- **Net Profit**: $1,441,250/month
+- **Net Profit**: $941,250/month
 
 ### Optimistic (10% conversion)  
-- Paid users: 100,000 × $29 = $2,900,000/month
+- Paid users: 100,000 × $19 = $1,900,000/month
 - Infrastructure: $8,750/month
-- **Net Profit**: $2,891,250/month
+- **Net Profit**: $1,891,250/month
 
 ## Break-even Analysis
 - Infrastructure costs: $8,750/month
-- Revenue per user: $29/month
-- **Break-even**: 302 paid users
-- **At 1M downloads**: Need 0.03% conversion to break even
+- Revenue per user: $19/month
+- **Break-even**: 461 paid users
+- **At 1M downloads**: Need 0.046% conversion to break even
 
 ## Risk Factors
 
@@ -140,7 +140,7 @@ https://github.com/carsor007/contextkeeper-agent/releases/
 **Infrastructure scales efficiently with revenue**
 - Fixed costs: ~$8,750/month
 - Variable costs: ~$0.09 per paid user
-- Break-even: 302 paid users (0.03% of downloads)
+- Break-even: 461 paid users (0.046% of downloads)
 - Profit margin: >99% after break-even
 
 **Risk: Anonymous user abuse could 10x costs**
