@@ -51,11 +51,15 @@ jobs:
     - name: Create release archives
       run: |
         cd bin
-        for file in *; do
+        for file in contextkeeper-agent-*; do
           if [[ "$file" == *"windows"* ]]; then
-            zip "${file%.*}.zip" "$file"
+            cp "$file" contextkeeper-agent.exe
+            zip "${file}.zip" contextkeeper-agent.exe
+            rm contextkeeper-agent.exe
           else
-            tar -czf "${file}.tar.gz" "$file"
+            cp "$file" contextkeeper-agent
+            tar -czf "${file}.tar.gz" contextkeeper-agent
+            rm contextkeeper-agent
           fi
         done
     

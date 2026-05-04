@@ -63,8 +63,8 @@ curl -L -o "$TEMP_ARCHIVE" "$DOWNLOAD_URL"
 mkdir -p "$TEMP_DIR"
 tar -xzf "$TEMP_ARCHIVE" -C "$TEMP_DIR"
 
-# Find the binary (may be nested in a subdirectory)
-BINARY=$(find "$TEMP_DIR" -type f -name "contextkeeper-agent" | head -1)
+# Find the binary — support both plain and platform-suffixed names
+BINARY=$(find "$TEMP_DIR" -type f \( -name "contextkeeper-agent" -o -name "contextkeeper-agent-*" \) | head -1)
 if [ -z "$BINARY" ]; then
     echo "Error: Could not find binary in archive"
     exit 1
