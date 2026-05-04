@@ -12,33 +12,27 @@ import (
 
 // client implements SyncClient interface for ContextKeeper.dev API
 type client struct {
-	httpClient   *http.Client
-	baseURL      string
-	sessionID    string
-	apiKey       string
-	isAnonymous  bool
+	httpClient *http.Client
+	baseURL    string
+	sessionID  string
+	apiKey     string
 }
 
 // NewClient creates a new sync client
 func NewClient(config *types.Config, sessionMgr SessionManager) (*client, error) {
-	sessionID := sessionMgr.GetOrCreateSession()
-	isAnonymous := sessionMgr.IsAnonymous()
-	
 	return &client{
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
-		baseURL:     config.ServerURL,
-		sessionID:   sessionID,
-		apiKey:      config.APIKey,
-		isAnonymous: isAnonymous,
+		baseURL:   config.ServerURL,
+		sessionID: sessionMgr.GetOrCreateSession(),
+		apiKey:    config.APIKey,
 	}, nil
 }
 
 // SessionManager interface (minimal definition for this package)
 type SessionManager interface {
 	GetOrCreateSession() string
-	IsAnonymous() bool
 }
 
 // SaveSession saves a session to ContextKeeper.dev
@@ -73,16 +67,10 @@ func (c *client) SaveSession(session *types.Session) error {
 	switch resp.StatusCode {
 	case 200, 201:
 		return nil
-	case 429:
-		return &UsageLimitError{
-			Message: "Free limit reached! You can save up to 50 sessions.",
-			Current: 50,
-			Limit:   50,
-		}
 	case 400:
 		return fmt.Errorf("bad request: missing or invalid session ID")
 	case 401:
-		return fmt.Errorf("unauthorized: invalid API key")
+		return fmt.Errorf("unauthorized: invalid or missing API key")
 	default:
 		return fmt.Errorf("unexpected response status: %d", resp.StatusCode)
 	}
@@ -124,22 +112,11 @@ func (c *client) GetUsageInfo(sessionID string) (*types.UsageInfo, error) {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 	
-	// Calculate usage info
-	limit := 50 // Anonymous users have 50-save limit
-	if !c.isAnonymous {
-		limit = -1 // Unlimited for authenticated users
-	}
-	
-	percentage := 0
-	if limit > 0 {
-		percentage = (result.Count * 100) / limit
-	}
-	
 	return &types.UsageInfo{
 		Current:    result.Count,
-		Limit:      limit,
-		Percentage: percentage,
-		HasReached: limit > 0 && result.Count >= limit,
+		Limit:      -1,
+		Percentage: 0,
+		HasReached: false,
 	}, nil
 }
 
@@ -170,25 +147,6 @@ func (c *client) TestConnection() error {
 func (c *client) setHeaders(req *http.Request) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("x-session-id", c.sessionID)
-	
-	if !c.isAnonymous && c.apiKey != "" {
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.apiKey))
-	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.apiKey))
 }
 
-// UsageLimitError represents a usage limit exceeded error
-type UsageLimitError struct {
-	Message string
-	Current int
-	Limit   int
-}
-
-func (e *UsageLimitError) Error() string {
-	return e.Message
-}
-
-// IsUsageLimitError checks if an error is a usage limit error
-func IsUsageLimitError(err error) bool {
-	_, ok := err.(*UsageLimitError)
-	return ok
-}

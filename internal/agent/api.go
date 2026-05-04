@@ -108,19 +108,6 @@ func (s *APIServer) handleSessions(w http.ResponseWriter, r *http.Request) {
 	sessionData.UserSessionID = s.agent.sessionMgr.GetOrCreateSession()
 	sessionData.Source = "vscode"
 	
-	// Process through the agent's pipeline
-	if s.agent.sessionMgr.IsAnonymous() {
-		// Free users: local storage only
-		log.Printf("📝 Received VS Code session: %s (free user)", sessionData.Title)
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
-			"status":  "stored_locally",
-			"message": "Upgrade to Pro for automatic sync",
-		})
-		return
-	}
-	
-	// Paid users: sync to cloud
 	if err := s.agent.buffer.Add(&sessionData); err != nil {
 		log.Printf("Error adding VS Code session to buffer: %v", err)
 		http.Error(w, "Failed to process session", http.StatusInternalServerError)

@@ -31,7 +31,6 @@ type Agent struct {
 type SessionManager interface {
 	GetOrCreateSession() string
 	GetUsageInfo() (*types.UsageInfo, error)
-	IsAnonymous() bool
 	SetAPIKey(apiKey string) error
 }
 
@@ -224,27 +223,16 @@ func (a *Agent) processOutputs(outputCh <-chan *types.AIOutput) {
 
 // processOutput processes a single AI output
 func (a *Agent) processOutput(output *types.AIOutput) error {
-	// Parse the output into a session
 	session, err := a.parser.Parse(output)
 	if err != nil {
 		return fmt.Errorf("failed to parse output: %w", err)
 	}
-	
-	// Check if user has premium features for auto-sync
-	if a.sessionMgr.IsAnonymous() {
-		// Free users: local storage only, show upgrade hint
-		log.Printf("📝 Captured %s session: %s", session.Tool, session.Title)
-		log.Printf("💡 Want automatic sync? Upgrade to Pro ($29/month) at contextkeeper.dev/pricing")
-		// TODO: Store locally for manual export
-		return nil
-	}
-	
-	// Paid users: auto-sync to cloud
+
 	if err := a.buffer.Add(session); err != nil {
 		return fmt.Errorf("failed to add session to buffer: %w", err)
 	}
-	
-	log.Printf("✅ Processed %s session: %s", session.Tool, session.Title)
+
+	log.Printf("✅ Synced %s session: %s", session.Tool, session.Title)
 	return nil
 }
 

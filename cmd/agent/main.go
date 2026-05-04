@@ -98,6 +98,16 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
+	// Require API key
+	if config.APIKey == "" {
+		fmt.Println("Error: API key required.")
+		fmt.Println("Add your API key to ~/.contextkeeper/config.yaml:")
+		fmt.Println("  api_key: YOUR_API_KEY")
+		fmt.Println()
+		fmt.Println("Get your API key at https://contextkeeper.dev/dashboard")
+		os.Exit(1)
+	}
+
 	// Start agent
 	log.Printf("Starting ContextKeeper Agent v%s", version)
 	if err := a.Start(); err != nil {

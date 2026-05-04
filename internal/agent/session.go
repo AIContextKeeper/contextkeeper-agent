@@ -57,19 +57,12 @@ func (sm *sessionManager) GetOrCreateSession() string {
 
 // GetUsageInfo returns current usage information
 func (sm *sessionManager) GetUsageInfo() (*types.UsageInfo, error) {
-	// For now, return mock data. In a real implementation,
-	// this would query the ContextKeeper API or local cache
 	return &types.UsageInfo{
-		Current:    0,  // This would be fetched from API/cache
-		Limit:      50, // Anonymous users have 50-save limit
+		Current:    0,
+		Limit:      -1,
 		Percentage: 0,
 		HasReached: false,
 	}, nil
-}
-
-// IsAnonymous returns true if the user is anonymous (no API key)
-func (sm *sessionManager) IsAnonymous() bool {
-	return sm.config.APIKey == ""
 }
 
 // SetAPIKey sets the API key for authenticated users

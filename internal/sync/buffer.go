@@ -164,18 +164,7 @@ func (b *buffer) flushOldest(count int) error {
 
 // uploadSession uploads a single session with error handling
 func (b *buffer) uploadSession(session *types.Session) error {
-	err := b.syncClient.SaveSession(session)
-	
-	if IsUsageLimitError(err) {
-		// Usage limit reached - this is expected for anonymous users
-		log.Printf("Usage limit reached for session: %s", session.Title)
-		return &PermanentError{
-			Message: "Usage limit reached",
-			Err:     err,
-		}
-	}
-	
-	return err
+	return b.syncClient.SaveSession(session)
 }
 
 // PermanentError represents an error that shouldn't be retried

@@ -326,26 +326,18 @@ func (m *monitor) parseHistoryFile(filename string) error {
 	return scanner.Err()
 }
 
-// checkRunningProcesses checks for running AI tool processes
+// checkRunningProcesses checks for running AI tool processes (detection only, not content capture)
 func (m *monitor) checkRunningProcesses() {
 	cmd := exec.Command("ps", "aux")
 	output, err := cmd.Output()
 	if err != nil {
 		return
 	}
-	
+
 	lines := strings.Split(string(output), "\n")
 	for _, line := range lines {
 		if m.isAIToolProcess(line) {
-			toolOutput := &types.AIOutput{
-				Tool:        m.extractToolFromProcess(line),
-				Content:     line,
-				Metadata:    map[string]string{"source": "process_monitor"},
-				Timestamp:   time.Now(),
-				ProjectPath: m.getCurrentDirectory(),
-			}
-			
-			m.publish(toolOutput)
+			log.Printf("Detected running AI tool: %s", m.extractToolFromProcess(line))
 		}
 	}
 }
