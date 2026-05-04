@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/carsor007/contextkeeper-agent/internal/parser"
+	agentsync "github.com/carsor007/contextkeeper-agent/internal/sync"
 	"github.com/carsor007/contextkeeper-agent/pkg/types"
 )
 
@@ -63,14 +65,19 @@ type Buffer interface {
 // New creates a new ContextKeeper agent
 func New(config *types.Config) (*Agent, error) {
 	ctx, cancel := context.WithCancel(context.Background())
-	
-	agent := &Agent{
+
+	a := &Agent{
 		config: config,
 		ctx:    ctx,
 		cancel: cancel,
 	}
-	
-	return agent, nil
+
+	if err := a.initializeComponents(); err != nil {
+		cancel()
+		return nil, fmt.Errorf("failed to initialize components: %w", err)
+	}
+
+	return a, nil
 }
 
 // Start begins the agent's monitoring and processing
@@ -83,12 +90,7 @@ func (a *Agent) Start() error {
 	}
 	
 	log.Printf("Starting ContextKeeper agent...")
-	
-	// Initialize components
-	if err := a.initializeComponents(); err != nil {
-		return fmt.Errorf("failed to initialize components: %w", err)
-	}
-	
+
 	// Start API server for VS Code integration
 	apiServer := NewAPIServer(a, a.config.LocalPort)
 	go func() {
@@ -174,25 +176,25 @@ func (a *Agent) initializeComponents() error {
 	a.sessionMgr = sessionMgr
 	
 	// Initialize sync client
-	syncClient, err := NewSyncClient(a.config, a.sessionMgr)
+	syncClient, err := agentsync.NewClient(a.config, a.sessionMgr)
 	if err != nil {
 		return fmt.Errorf("failed to create sync client: %w", err)
 	}
 	a.syncClient = syncClient
-	
+
 	// Initialize parser
-	parser, err := NewParser()
+	p, err := parser.NewParser()
 	if err != nil {
 		return fmt.Errorf("failed to create parser: %w", err)
 	}
-	a.parser = parser
-	
+	a.parser = p
+
 	// Initialize buffer
-	buffer, err := NewBuffer(a.config, a.syncClient)
+	buf, err := agentsync.NewBuffer(a.config, a.syncClient)
 	if err != nil {
 		return fmt.Errorf("failed to create buffer: %w", err)
 	}
-	a.buffer = buffer
+	a.buffer = buf
 	
 	// Initialize monitor
 	monitor, err := NewMonitor(a.config)
