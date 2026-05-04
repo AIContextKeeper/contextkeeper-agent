@@ -54,13 +54,26 @@ fi
 
 echo "Download URL: $DOWNLOAD_URL"
 
-# Download binary
-TEMP_FILE="/tmp/contextkeeper-agent"
-curl -L -o "$TEMP_FILE" "$DOWNLOAD_URL"
+# Download and extract binary
+TEMP_ARCHIVE="/tmp/contextkeeper-agent.tar.gz"
+TEMP_DIR="/tmp/contextkeeper-agent-extract"
 
-# Make executable and move to install directory
-chmod +x "$TEMP_FILE"
-mv "$TEMP_FILE" "$INSTALL_DIR/contextkeeper-agent"
+curl -L -o "$TEMP_ARCHIVE" "$DOWNLOAD_URL"
+
+mkdir -p "$TEMP_DIR"
+tar -xzf "$TEMP_ARCHIVE" -C "$TEMP_DIR"
+
+# Find the binary (may be nested in a subdirectory)
+BINARY=$(find "$TEMP_DIR" -type f -name "contextkeeper-agent" | head -1)
+if [ -z "$BINARY" ]; then
+    echo "Error: Could not find binary in archive"
+    exit 1
+fi
+
+chmod +x "$BINARY"
+mv "$BINARY" "$INSTALL_DIR/contextkeeper-agent"
+
+rm -rf "$TEMP_ARCHIVE" "$TEMP_DIR"
 
 echo "✓ Installed contextkeeper-agent to $INSTALL_DIR"
 
