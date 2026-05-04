@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/carsor007/contextkeeper-agent/pkg/types"
+	"github.com/AIContextKeeper/contextkeeper-agent/pkg/types"
 )
 
 // buffer implements Buffer interface for local session buffering

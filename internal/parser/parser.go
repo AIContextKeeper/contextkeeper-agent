@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/carsor007/contextkeeper-agent/pkg/types"
+	"github.com/AIContextKeeper/contextkeeper-agent/pkg/types"
 )
 
 // parser implements Parser interface for parsing AI tool outputs

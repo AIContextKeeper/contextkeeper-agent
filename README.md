@@ -19,12 +19,12 @@ A lightweight Go agent that automatically captures and syncs AI tool interaction
 **Option 1: Download Binary**
 ```bash
 # Download and run install script
-curl -fsSL https://raw.githubusercontent.com/carsor007/contextkeeper-agent/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/AIContextKeeper/contextkeeper-agent/main/scripts/install.sh | bash
 ```
 
 **Option 2: Build from Source**
 ```bash
-git clone https://github.com/carsor007/contextkeeper-agent.git
+git clone https://github.com/AIContextKeeper/contextkeeper-agent.git
 cd contextkeeper-agent
 ./scripts/build.sh
 ```
@@ -109,7 +109,7 @@ upload_batch: 5
 ### Building
 ```bash
 # Clone repository
-git clone https://github.com/carsor007/contextkeeper-agent.git
+git clone https://github.com/AIContextKeeper/contextkeeper-agent.git
 cd contextkeeper-agent
 
 # Build for current platform
@@ -201,4 +201,4 @@ Proprietary software - see [LICENSE](LICENSE) file for details.
 - **VS Code Extension**: [GitHub](https://github.com/AIContextKeeper/vscode)
 - **Web App**: [GitHub](https://github.com/carsor007/ContextKeeper) (Private)
 - **Documentation**: [Docs](https://contextkeeper.dev/docs)
-- **Support**: [Issues](https://github.com/carsor007/contextkeeper-agent/issues)
+- **Support**: [Issues](https://github.com/AIContextKeeper/contextkeeper-agent/issues)

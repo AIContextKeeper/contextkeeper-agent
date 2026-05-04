@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/carsor007/contextkeeper-agent/pkg/types"
+	"github.com/AIContextKeeper/contextkeeper-agent/pkg/types"
 	"gopkg.in/yaml.v3"
 )
 

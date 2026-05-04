@@ -4,7 +4,7 @@
 
 set -e
 
-REPO="carsor007/contextkeeper-agent"
+REPO="AIContextKeeper/contextkeeper-agent"
 INSTALL_DIR="/usr/local/bin"
 CONFIG_DIR="$HOME/.contextkeeper"
 

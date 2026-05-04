@@ -1,4 +1,4 @@
-module github.com/carsor007/contextkeeper-agent
+module github.com/AIContextKeeper/contextkeeper-agent
 
 go 1.24.3
 

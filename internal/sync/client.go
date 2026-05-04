@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/carsor007/contextkeeper-agent/pkg/types"
+	"github.com/AIContextKeeper/contextkeeper-agent/pkg/types"
 )
 
 // client implements SyncClient interface for ContextKeeper.dev API

@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/carsor007/contextkeeper-agent/pkg/types"
+	"github.com/AIContextKeeper/contextkeeper-agent/pkg/types"
 )
 
 // APIServer provides HTTP API for VS Code extension integration

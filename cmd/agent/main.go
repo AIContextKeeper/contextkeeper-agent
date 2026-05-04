@@ -9,8 +9,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/carsor007/contextkeeper-agent/internal/agent"
-	"github.com/carsor007/contextkeeper-agent/pkg/types"
+	"github.com/AIContextKeeper/contextkeeper-agent/internal/agent"
+	"github.com/AIContextKeeper/contextkeeper-agent/pkg/types"
 	"gopkg.in/yaml.v3"
 )
 

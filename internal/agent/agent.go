@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/carsor007/contextkeeper-agent/internal/parser"
-	agentsync "github.com/carsor007/contextkeeper-agent/internal/sync"
-	"github.com/carsor007/contextkeeper-agent/pkg/types"
+	"github.com/AIContextKeeper/contextkeeper-agent/internal/parser"
+	agentsync "github.com/AIContextKeeper/contextkeeper-agent/internal/sync"
+	"github.com/AIContextKeeper/contextkeeper-agent/pkg/types"
 )
 
 // Agent represents the main ContextKeeper agent
