@@ -11,6 +11,7 @@ import (
 
 	"github.com/carsor007/contextkeeper-agent/internal/agent"
 	"github.com/carsor007/contextkeeper-agent/pkg/types"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -91,7 +92,7 @@ func main() {
 	}
 
 	// Setup signal handling
-	ctx, cancel := context.WithCancel(context.Background())
+	_, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	sigChan := make(chan os.Signal, 1)
@@ -128,18 +129,23 @@ func main() {
 // loadConfig loads configuration from file or creates default
 func loadConfig(configFile string) (*types.Config, error) {
 	config := &types.Config{
-		ServerURL:    "https://contextkeeper.dev",
-		LocalPort:    8080,
-		LogLevel:     "info",
-		EnableTLS:    true,
-		MaxSessions:  100,
-		UploadBatch:  5,
+		ServerURL:   "https://contextkeeper.dev",
+		LocalPort:   8080,
+		LogLevel:    "info",
+		EnableTLS:   true,
+		MaxSessions: 100,
+		UploadBatch: 5,
 	}
 
-	// If config file specified, try to load it
 	if configFile != "" {
-		// TODO: Implement config file loading
-		log.Printf("Config file loading not yet implemented, using defaults")
+		data, err := os.ReadFile(configFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read config file %s: %w", configFile, err)
+		}
+		if err := yaml.Unmarshal(data, config); err != nil {
+			return nil, fmt.Errorf("failed to parse config file %s: %w", configFile, err)
+		}
+		log.Printf("Loaded config from %s", configFile)
 	}
 
 	return config, nil

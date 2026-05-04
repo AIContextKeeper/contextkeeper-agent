@@ -3,10 +3,12 @@ package agent
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"sync"
@@ -23,6 +25,8 @@ type monitor struct {
 	ctx         context.Context
 	cancel      context.CancelFunc
 	wg          sync.WaitGroup
+	seenFiles   map[string]time.Time
+	seenMu      sync.Mutex
 }
 
 // NewMonitor creates a new terminal monitor
@@ -34,6 +38,7 @@ func NewMonitor(config *types.Config) (Monitor, error) {
 		subscribers: make([]chan<- *types.AIOutput, 0),
 		ctx:         ctx,
 		cancel:      cancel,
+		seenFiles:   make(map[string]time.Time),
 	}, nil
 }
 
@@ -98,10 +103,7 @@ func (m *monitor) monitorClaudeCode() {
 		case <-m.ctx.Done():
 			return
 		case <-ticker.C:
-			// Check for Claude Code sessions
-			if output := m.detectClaudeCodeOutput(); output != nil {
-				m.publish(output)
-			}
+			m.detectClaudeCodeOutput()
 		}
 	}
 }
@@ -140,25 +142,124 @@ func (m *monitor) monitorProcesses() {
 	}
 }
 
-// detectClaudeCodeOutput detects Claude Code CLI outputs
-func (m *monitor) detectClaudeCodeOutput() *types.AIOutput {
-	// Look for Claude Code temporary files or recent outputs
-	// This is a placeholder implementation
-	
+// detectClaudeCodeOutput scans ~/.claude/projects/ for new or modified session files
+func (m *monitor) detectClaudeCodeOutput() {
 	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return
+	}
+
+	claudeProjectsDir := filepath.Join(homeDir, ".claude", "projects")
+	if _, err := os.Stat(claudeProjectsDir); os.IsNotExist(err) {
+		return
+	}
+
+	filepath.Walk(claudeProjectsDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil || info.IsDir() || !strings.HasSuffix(path, ".jsonl") {
+			return nil
+		}
+
+		m.seenMu.Lock()
+		lastMod, seen := m.seenFiles[path]
+		m.seenMu.Unlock()
+
+		if seen && !info.ModTime().After(lastMod) {
+			return nil
+		}
+
+		if output := m.readClaudeSession(path); output != nil {
+			m.publish(output)
+		}
+
+		m.seenMu.Lock()
+		m.seenFiles[path] = info.ModTime()
+		m.seenMu.Unlock()
+
+		return nil
+	})
+}
+
+// readClaudeSession reads a Claude Code JSONL session file and returns an AIOutput
+func (m *monitor) readClaudeSession(path string) *types.AIOutput {
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil
 	}
-	
-	// Check for Claude Code session files
-	claudeDir := fmt.Sprintf("%s/.claude", homeDir)
-	if _, err := os.Stat(claudeDir); os.IsNotExist(err) {
+
+	type contentBlock struct {
+		Type string `json:"type"`
+		Text string `json:"text"`
+	}
+	type rawMessage struct {
+		Role    string          `json:"role"`
+		Type    string          `json:"type"`
+		Content json.RawMessage `json:"content"`
+	}
+
+	var parts []string
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+
+		var msg rawMessage
+		if err := json.Unmarshal([]byte(line), &msg); err != nil {
+			continue
+		}
+
+		role := msg.Role
+		if role == "" {
+			role = msg.Type
+		}
+		if role == "" || role == "system" {
+			continue
+		}
+
+		var text string
+		// Content is either a plain string or an array of content blocks
+		var strContent string
+		if err := json.Unmarshal(msg.Content, &strContent); err == nil {
+			text = strContent
+		} else {
+			var blocks []contentBlock
+			if err := json.Unmarshal(msg.Content, &blocks); err == nil {
+				var sb strings.Builder
+				for _, b := range blocks {
+					if b.Type == "text" && b.Text != "" {
+						sb.WriteString(b.Text)
+					}
+				}
+				text = sb.String()
+			}
+		}
+
+		if text = strings.TrimSpace(text); text != "" {
+			parts = append(parts, fmt.Sprintf("%s: %s", role, text))
+		}
+	}
+
+	if len(parts) == 0 {
 		return nil
 	}
-	
-	// This would be more sophisticated in a real implementation
-	// For now, return nil as we need to integrate with actual Claude Code
-	return nil
+
+	return &types.AIOutput{
+		Tool:        "claude",
+		Content:     strings.Join(parts, "\n\n"),
+		Metadata:    map[string]string{"source": "claude_code", "file": path},
+		Timestamp:   time.Now(),
+		ProjectPath: m.projectPathFromSession(path),
+	}
+}
+
+// projectPathFromSession decodes the project path from a Claude Code session file path.
+// Claude encodes project paths as: -Users-samu-Development-MyProject
+func (m *monitor) projectPathFromSession(sessionPath string) string {
+	encoded := filepath.Base(filepath.Dir(sessionPath))
+	if strings.HasPrefix(encoded, "-") {
+		return strings.ReplaceAll(encoded, "-", "/")
+	}
+	return encoded
 }
 
 // checkShellHistory checks shell history for AI tool commands
